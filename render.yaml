@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: rssfeedblog
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/main.py
+    envVars:
+      - key: PORT
+        value: 10000
