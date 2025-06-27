@@ -2,4 +2,3 @@ Flask
 feedparser
 requests
 python-dateutil
-wix-oauth
