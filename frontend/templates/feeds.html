@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Top Research Feeds</title>
+</head>
+<body>
+    <h1>Latest from the Feed</h1>
+    <ul>
+        {% for entry in entries %}
+        <li>
+            <h3><a href="{{ entry.link }}" target="_blank">{{ entry.title }}</a></h3>
+            <p>{{ entry.summary[:150] | safe }}...</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <p><a href="/">← Back to Home</a></p>
+</body>
+</html>
