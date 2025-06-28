@@ -1,0 +1,54 @@
+[
+  {
+    "university": "California Institute of Technology (Caltech)",
+    "feed_url": "https://www.caltech.edu/rssfeeds"
+  },
+  {
+    "university": "Cornell University",
+    "feed_url": "https://www.cornell.edu/rss-feeds"
+  },
+  {
+    "university": "ETH Zurich",
+    "feed_url": "https://ethz.ch/en/utils/rss.html"
+  },
+  {
+    "university": "Harvard University",
+    "feed_url": "https://www.harvard.edu/federal-lawsuits/federal-lawsuits/feed/"
+  },
+  {
+    "university": "Imperial College London",
+    "feed_url": "http://www.imperial.ac.uk/NewsApp/docs/feed/college/news/"
+  },
+  {
+    "university": "Massachusetts Institute of Technology (MIT)",
+    "feed_url": "https://web.mit.edu/rss"
+  },
+  {
+    "university": "Stanford University",
+    "feed_url": "http://news.stanford.edu/feed/"
+  },
+  {
+    "university": "University College London (UCL)",
+    "feed_url": "https://cms-feed.ucl.ac.uk/s/search.html?collection=drupal-meta-news-news&meta_UclSubject=%22research%22&form=ucl"
+  },
+  {
+    "university": "University of California, Berkeley (UCB)",
+    "feed_url": "https://www.berkeley.edu/feed/"
+  },
+  {
+    "university": "University of Cambridge",
+    "feed_url": "https://www.cam.ac.uk/news/feed"
+  },
+  {
+    "university": "University of Chicago",
+    "feed_url": "https://www.uchicago.edu/contact-us/website-feedback"
+  },
+  {
+    "university": "University of Melbourne",
+    "feed_url": "https://www.unimelb.edu.au/newsroom/feed"
+  },
+  {
+    "university": "University of Oxford",
+    "feed_url": "https://www.ox.ac.uk/feeds/rss/news"
+  }
+]
