@@ -1,68 +1,125 @@
 #!/usr/bin/env python3
-import json, feedparser, datetime, os, sys
+import sys
+import types
 
+# ─── Python 3.13 has removed the stdlib 'cgi' module, but Feedparser still does:
+#       import cgi;  ... = cgi.parse_header(...)
+# ─── So we inject our own tiny 'cgi' module before feedparser loads.
+
+if "cgi" not in sys.modules:
+    _cgi = types.ModuleType("cgi")
+    def parse_header(header_value):
+        """
+        Splits a header like "text/html; charset=UTF-8" into
+        ("text/html", {"charset": "UTF-8"})
+        """
+        parts = header_value.split(";")
+        main_value = parts[0].strip()
+        params = {}
+        for p in parts[1:]:
+            if "=" in p:
+                k, v = p.split("=", 1)
+                k = k.strip().lower()
+                v = v.strip().strip('"').strip("'")
+                params[k] = v
+        return main_value, params
+
+    _cgi.parse_header = parse_header
+    sys.modules["cgi"] = _cgi
+
+# ─── Now the real import
+import os
+import json
+import datetime
+import feedparser
+
+# ——— CONFIG —————————————————————————————————————————————————————————————————
 HERE        = os.path.dirname(__file__)
 FEEDS_FILE  = os.path.join(HERE, "rss_feeds.json")
 OUTPUT_FILE = os.path.join(HERE, "rss_data.json")
-DAYS_BACK   = 10
+DAYS_LIMIT  = 10
 
+# ——— LOAD PRIMARY RSS URLs ——————————————————————————————————————————————————
 def load_feeds():
-    if not os.path.exists(FEEDS_FILE):
-        print(f"❌ Missing {FEEDS_FILE}", file=sys.stderr)
-        sys.exit(1)
-    return json.load(open(FEEDS_FILE, encoding="utf-8"))
+    """
+    Load the list of primary feeds you picked in update_feeds.py.
+    Expects JSON of the form:
+      [
+        { "university": "...", "feed_url": "https://..." },
+        ...
+      ]
+    """
+    with open(FEEDS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def extract_image(entry):
-    # media:content or any link[type=image]
-    for media in entry.get("media_content", []):
-        if media.get("url"):
-            return media["url"]
-    for link in entry.get("links", []):
-        if link.get("type","").startswith("image"):
-            return link.get("href")
-    return "https://via.placeholder.com/400x200"
-
-def fetch_recent(url):
+# ——— FETCH AN INDIVIDUAL FEED —————————————————————————————————————————————————
+def fetch_recent_articles(feed, days=DAYS_LIMIT):
+    uni = feed["university"]
+    url = feed["feed_url"]
     parsed = feedparser.parse(url)
-    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=DAYS_BACK)
-    items  = []
+    entries = []
+
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    cutoff  = now_utc - datetime.timedelta(days=days)
+
     for e in parsed.entries:
-        dp = e.get("published_parsed") or e.get("updated_parsed")
-        if not dp:
+        ts = e.get("published_parsed") or e.get("updated_parsed")
+        if not ts:
             continue
-        dt = datetime.datetime(*dp[:6], tzinfo=datetime.timezone.utc)
+        dt = datetime.datetime(*ts[:6], tzinfo=datetime.timezone.utc)
         if dt < cutoff:
             continue
-        items.append({
-            "title":   e.get("title",""),
-            "link":    e.get("link",""),
-            "date":    dt.isoformat(),
-            "excerpt": e.get("summary","")[:900],
-            "image":   extract_image(e),
+
+        # pick an image if any
+        img = None
+        if "media_content" in e:
+            for m in e.media_content:
+                if m.get("url"):
+                    img = m["url"]
+                    break
+        if not img and "links" in e:
+            for l in e.links:
+                if l.get("type","").startswith("image"):
+                    img = l["href"]
+                    break
+        if not img:
+            img = "https://via.placeholder.com/400x200"
+
+        summary = e.get("summary") or e.get("description") or ""
+        excerpt = summary[:900]
+
+        entries.append({
+            "university": uni,
+            "title":      e.get("title","No Title"),
+            "link":       e.get("link",""),
+            "date":       dt.isoformat(),
+            "excerpt":    excerpt,
+            "image":      img
         })
-    return items
 
-def main():
+    return entries
+
+# ——— COLLECT ALL FEEDS ————————————————————————————————————————————————————
+def fetch_all_articles():
+    all_articles = []
     feeds = load_feeds()
-    all_items = []
 
-    for f in feeds:
-        uni, url = f["university"], f["feed_url"]
-        print(f"→ Fetching {uni} …", end=" ")
+    for feed in feeds:
         try:
-            recs = fetch_recent(url)
-            for r in recs:
-                r["university"] = uni
-            all_items.extend(recs)
-            print(f"✔ {len(recs)} articles")
+            arts = fetch_recent_articles(feed)
+            count = len(arts)
+            print(f"→ Fetching {feed['university']} … ✔ {count} article{'s' if count!=1 else ''}")
+            all_articles.extend(arts)
         except Exception as e:
-            print(f"⚠ {e.__class__.__name__}")
+            print(f"⚠ Failed to parse {feed['university']} → {feed['feed_url']}  ({e})")
 
-    with open(OUTPUT_FILE,"w",encoding="utf-8") as out:
-        json.dump(all_items, out, ensure_ascii=False, indent=2)
-
-    print(f"\n🎉 Total collected: {len(all_items)} articles")
+    print(f"🎉 Total collected: {len(all_articles)} articles")
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(all_articles, f, ensure_ascii=False, indent=2)
     print(f"✅ Written to `{os.path.basename(OUTPUT_FILE)}`")
 
-if __name__=="__main__":
-    main()
+    return all_articles
+
+# ——— STAND-ALONE RUNNER ——————————————————————————————————————————————————
+if __name__ == "__main__":
+    fetch_all_articles()

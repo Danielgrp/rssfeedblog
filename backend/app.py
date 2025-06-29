@@ -1,40 +1,41 @@
-# backend/app.py
-import json
+#!/usr/bin/env python3
 import os
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, jsonify, send_from_directory
+from fetch_rss import fetch_all_articles
 
-# Path to the scraped data
-HERE = os.path.dirname(__file__)
-DATA_FILE = os.path.join(HERE, "rss_data.json")
-
-# Where Vite’s production build will live
-FRONTEND_DIST = os.path.abspath(os.path.join(HERE, "..", "frontend", "dist"))
-
-app = Flask(
-    __name__,
-    static_folder=FRONTEND_DIST,    # serve React’s build files
-    static_url_path=""              # at the root
+# point this at wherever your front-end build lives
+STATIC_FOLDER = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../frontend/dist")
 )
 
-@app.route("/api/articles")
-def articles():
-    """Return the scraped RSS articles as JSON."""
-    with open(DATA_FILE, encoding="utf-8") as f:
-        data = json.load(f)
-    return jsonify(data)
+app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path="")
+
+@app.route("/api/feeds")
+def api_feeds():
+    """
+    Fetch the latest articles from all your RSS feeds
+    and return them as JSON.
+    """
+    try:
+        articles = fetch_all_articles()
+        return jsonify(articles)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_frontend(path):
     """
-    Serve any file in frontend/dist by path,
-    otherwise fall back to index.html (for React Router).
+    Serve your React/Vite app. If the requested file exists in
+    the built `dist` folder, serve it; otherwise fall back to index.html.
     """
-    target = os.path.join(FRONTEND_DIST, path)
-    if path and os.path.exists(target):
-        return send_from_directory(FRONTEND_DIST, path)
-    return send_from_directory(FRONTEND_DIST, "index.html")
+    full_path = os.path.join(STATIC_FOLDER, path)
+    if path and os.path.exists(full_path):
+        return send_from_directory(STATIC_FOLDER, path)
+    return send_from_directory(STATIC_FOLDER, "index.html")
 
 if __name__ == "__main__":
+    # Use PORT env var if available (e.g. on Render), else default to 5000
     port = int(os.environ.get("PORT", 5000))
+    # Listen on all interfaces so it’s reachable externally
     app.run(host="0.0.0.0", port=port)

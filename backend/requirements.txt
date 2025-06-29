@@ -1,2 +1,2 @@
-Flask==2.4.1
+Flask>=2.0,<2.4.0
 feedparser==6.0.10
