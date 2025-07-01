@@ -3,10 +3,11 @@
     "university": "California Institute of Technology (Caltech)",
     "feed_url": "https://www.caltech.edu/about/news/rss"
   },
-  {
-    "university": "Cornell University",
-    "feed_url": "https://www.cornell.edu/rss-feeds"
-  },
+ {
+  "university": "Cornell University",
+  "feed_url":   "https://news.cornell.edu/taxonomy/term/81/feed"
+},
+
   {
     "university": "ETH Zurich",
     "feed_url": "https://ethz.ch/en/utils/rss.html"
