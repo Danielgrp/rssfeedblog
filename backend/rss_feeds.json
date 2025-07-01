@@ -1,7 +1,7 @@
 [
   {
     "university": "California Institute of Technology (Caltech)",
-    "feed_url": "https://www.caltech.edu/rssfeeds"
+    "feed_url": "https://www.caltech.edu/about/news/rss"
   },
   {
     "university": "Cornell University",
@@ -29,7 +29,7 @@
   },
   {
     "university": "University College London (UCL)",
-    "feed_url": "https://cms-feed.ucl.ac.uk/s/search.html?collection=drupal-meta-news-news&meta_UclSubject=%22research%22&form=ucl"
+    "feed_url": "https://cms-feed.ucl.ac.uk/s/search.html?collection=drupal-meta-news–news&meta_UclSubject=%22research%22&form=ucl"
   },
   {
     "university": "University of California, Berkeley (UCB)",
@@ -37,7 +37,7 @@
   },
   {
     "university": "University of Cambridge",
-    "feed_url": "https://www.cam.ac.uk/news/feed"
+    "feed_url": "https://www.cam.ac.uk/news/rss"
   },
   {
     "university": "University of Chicago",
